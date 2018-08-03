@@ -1,13 +1,14 @@
 from pprint import pprint
 import re
 
-class PG:
-    def __init__(self):
+class Extracter:
+    def __init__(self, file):
+        self.file = file
         self.words = self.read()
-        self.two_words = self.two_words_gen()
+        self.two_words = self.two_words_gen(1)
 
     def read(self):
-        f = open('pg.txt', 'r')
+        f = open(self.file, 'r')
         text = f.read()
         text = text.replace('\n', ' ')
         text = text.replace('-', ' ')
@@ -19,6 +20,15 @@ class PG:
         text = text.replace('n\'t', ' not')
         text = text.replace('\'ve', ' have')
         text = text.replace('\'d', ' would')
+
+        text = text.replace('’re', ' are')
+        text = text.replace('’s', ' is')
+        text = text.replace('’m', ' am')
+        text = text.replace('’ll', ' will')
+        text = text.replace('won’t', 'will not')
+        text = text.replace('n’t', ' not')
+        text = text.replace('’ve', ' have')
+        text = text.replace('’d', ' would')
 
         text = text.replace('—', ' — ')
         text = text.replace('.', ' .')
@@ -48,9 +58,9 @@ class PG:
         word = word.replace('--', '')
         return word
 
-    def density(self, words):
+    def density(self):
         distribution = {}
-        for word in words:
+        for word in self.words:
             if word not in distribution.keys():
                 distribution[word] = 1
             else:
@@ -60,16 +70,16 @@ class PG:
         new_distribution = []
         total_words = 0
         for word, value in sorted_distribution:
-            if value > 5:
+            if value >= 4:
                 total_words += value
                 new_distribution.append((word, value))
 
-        new_distribution = [(w, v / total_words) for w, v in new_distribution]
+        return {w: v / total_words for w, v in new_distribution[:1423]}
 
-    def two_words_gen(self):
+    def two_words_gen(self, separation):
         two_words = {}
 
-        for word1, word2 in zip(self.words, self.words[1:]):
+        for word1, word2 in zip(self.words, self.words[separation:]):
             if word1 not in two_words.keys():
                 two_words[word1] = {word2: 1}
             else:
@@ -87,7 +97,18 @@ class PG:
         return two_words
 
     def distFn(self, word):
-        return self.two_words[word]
+        return self.two_words[0][word]
+
+    def distFn2(self, word):
+        weights = [.5, .26, .13, .06, .03, 0.013, 0.007]
+
+        return self.two_words[i][word]
+
+pg = Extracter('pg.txt')
+zero = Extracter('0to1.txt')
+
+print (len(pg.density()))
+print (len(zero.density()))
 
 '''
 there is a more efficient way to store the two_words things (something like a graph.) Think about that'
